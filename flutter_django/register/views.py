@@ -77,14 +77,15 @@ def imagesUpload(request):
     try:
         today = timezone.now().strftime('%y%m%d')
         user = request.user
+        root = 'C:/Users/Hoseo/Desktop/project/images'
         counter = 0
-        DIRECTORY = f'C:/Users/Hoseo/Desktop/project/images/{user}/{today}_{counter:02d}'  # 저장 위치 지정
+        DIRECTORY = f'{root}/{user}/{today}_{counter:02d}'  # 저장 위치 지정
 
         # 중복된 경로가 있으면 새로운 이름의 폴더 생성
         if os.path.exists(DIRECTORY):
             while True:
                 counter += 1
-                new_directory = f'C:/Users/Hoseo/Desktop/project/images/{user}/{today}_{counter:02d}'
+                new_directory = f'{root}/{user}/{today}_{counter:02d}'
                 if not os.path.exists(new_directory):
                     DIRECTORY = new_directory
                     print(f'New Directory: {DIRECTORY}')
