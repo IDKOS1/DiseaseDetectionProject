@@ -5,7 +5,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.exceptions import APIException
 from rest_framework import exceptions, status
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from .models import User, ImageUpload
@@ -47,8 +47,10 @@ def LoginView(request):
 
     if user is not None:
         token = Token.objects.get(user=user)
-        print(f"반환토큰 {token}")
-        return Response({"token": token.key})
+        # User 객체를 찾았으므로 User의 id를 반환
+        user_id = user.id
+        return Response({"token": token.key, "id": user_id})
+
     else:
         try:
             # 이메일로 사용자를 찾았지만 비밀번호가 틀린 경우
@@ -119,16 +121,33 @@ def imagesUpload(request):
         return Response("업로드 실패",content_type=u"application/json; charset=utf-8", status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def resultView(request):
+def loadResult(request):
     try:
         user = request.user
-        user_email = user.email
-        result = ImageUpload.objects.filter(upload_user=user_email)
-        serializer = ImageUploadSerializer(result, many=True)
-        return Response(serializer)
+        user_id = user.id
+        print(f"user id={user_id}")
+        results = ImageUpload.objects.filter(upload_user=user_id)
+        print(results.count())
 
-    except BaseException:
-        return Response("에러", status=status.HTTP_400_BAD_REQUEST)
+
+        if results.exists():
+            data = [{"location": result.location,
+                     "upload_date": result.upload_date.strftime('%Y-%m-%d %H:%M:%S'),
+                     "number_images": result.number_images, "is_done": result.is_done, "Edwardsiella": result.Edwardsiella,
+                     "Vibrio": result.Vibrio, "Streptococcus": result.Streptococcus, "Tenacibaculumn": result.Tenacibaculumn,
+                     "Enteromyxum": result.Enteromyxum, "Miamiensis": result.Miamiensis, "VHSV": result.VHSV
+                     } for result in results]
+            print(data)
+
+            return JsonResponse(data, safe=False)
+        else:
+            # Handle the case where no results are found for the user
+            response_data = {"length": 0}
+            return Response(response_data)
+    except Exception as e:
+        # Handle exceptions gracefully, e.g., log the error
+        print(f"Error in loadResult: {str(e)}")
+        return Response({"error": "An error occurred"}, status=500)

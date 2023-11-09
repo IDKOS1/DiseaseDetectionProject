@@ -6,5 +6,5 @@ urlpatterns = [
     path('login/', views.LoginView),
     path('checkToken/', views.checkToken),
     path('uploadImage/', views.imagesUpload),
-    path('loadResult/', views.resultView)
+    path('loadResult/', views.loadResult)
 ]
