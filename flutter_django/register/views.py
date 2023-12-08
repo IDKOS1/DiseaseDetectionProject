@@ -49,7 +49,7 @@ def LoginView(request):
         token = Token.objects.get(user=user)
         # User 객체를 찾았으므로 User의 id를 반환
         user_id = user.id
-        return Response({"token": token.key, "id": user_id})
+        return Response({"token": token.key, "id": user_id, "name": user.username, "farm": user.farm, "email": user.email}, content_type=u"application/json; charset=utf-8")
 
     else:
         try:
